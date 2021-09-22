@@ -1,0 +1,4 @@
+[[redirects]]
+  from = "/api/users"
+  to = "/.netlify/functions/add-user"
+  status = 200

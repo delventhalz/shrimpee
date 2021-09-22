@@ -1,0 +1,23 @@
+{
+  "name": "shrimpee",
+  "version": "0.0.0",
+  "description": "A quick coding demonstration for shrimp farm management",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/delventhalz/shrimpee.git"
+  },
+  "author": "Zac Delventhal <delventhalz@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/delventhalz/shrimpee/issues"
+  },
+  "homepage": "https://github.com/delventhalz/shrimpee#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "faunadb": "^4.4.1"
+  }
+}
