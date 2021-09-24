@@ -1,8 +1,20 @@
 /* global m */
 
+import { getAuth } from './auth.js';
+
 const API_PATH = '/api';
 
-const request = async (path, options) => {
+const request = async (path, options = {}) => {
+  const token = getAuth();
+
+  if (token) {
+    if (!options.headers) {
+      options.headers = {};
+    }
+
+    options.headers.Authorization = token;
+  }
+
   try {
     return await m.request(API_PATH + path, options);
   } catch (err) {
