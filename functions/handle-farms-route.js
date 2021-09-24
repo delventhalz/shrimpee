@@ -3,21 +3,11 @@ const { q, query, FarmRef } = require('./utils/db.js');
 const { getPathVars, wrapWith200 } = require('./utils/requests.js');
 
 const GetUserFarms = (userId) => (
-
   q.Select(
     ['data'],
-    q.Filter(
-      q.Map(
-        q.Paginate(q.Documents(q.Collection('farms'))),
-        q.Lambda('farmRef', q.Get(q.Var('farmRef'))),
-      ),
-      q.Lambda(
-        'farm',
-        q.Equals(
-          userId,
-          q.Select(['data', 'owner'], q.Var('farm')),
-        ),
-      ),
+    q.Map(
+      q.Paginate(q.Match(q.Index('farms_by_owner'), userId)),
+      q.Lambda('farmRef', q.Get(q.Var('farmRef'))),
     ),
   )
 );
