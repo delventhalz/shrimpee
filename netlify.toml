@@ -9,6 +9,11 @@
   status = 200
 
 [[redirects]]
-  from = "/api/farms/:farmsId"
-  to = "/.netlify/functions/handle-farms-route/farms/:farmsId"
+  from = "/api/farms/:farmId"
+  to = "/.netlify/functions/handle-farms-route/farms/:farmId"
+  status = 200
+
+[[redirects]]
+  from = "/api/farms/:farmId/ponds"
+  to = "/.netlify/functions/handle-ponds-route/farms/:farmId"
   status = 200

@@ -16,10 +16,42 @@ const toId = (name) => String(parseInt(name.toLowerCase(), 36));
 const UserRef = id => q.Ref(q.Collection('users'), id);
 const FarmRef = id => q.Ref(q.Collection('farms'), id);
 
+const Normalize = (resource) => (
+  q.Merge(
+    q.Select(['data'], resource),
+    { id: q.Select(['ref', 'id'], resource) },
+  )
+);
+
+const CreateNormal = (collection, data) => (
+  Normalize(
+    q.Create(
+      q.Collection(collection),
+      { data },
+    ),
+  )
+);
+
+const GetIndexedItems = (name, term) => (
+  q.Map(
+    q.Select(
+      ['data'],
+      q.Map(
+        q.Paginate(q.Match(q.Index(name), term)),
+        q.Lambda(['ref'], q.Get(q.Var('ref'))),
+      ),
+    ),
+    q.Lambda(['doc'], Normalize(q.Var('doc'))),
+  )
+);
+
 module.exports = {
   q,
   query,
   toId,
   UserRef,
   FarmRef,
+  Normalize,
+  CreateNormal,
+  GetIndexedItems,
 };
