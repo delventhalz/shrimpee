@@ -2,7 +2,7 @@
 
 import { LabeledInput } from '../components/forms.js';
 import { api } from '../services/api.js';
-import { setAuth } from '../services/auth.js';
+import { setAuth, zcrypt } from '../services/auth.js';
 
 export const LoginForm = {
   view({ state }) {
@@ -17,7 +17,7 @@ export const LoginForm = {
       try {
         await api.post('/users', {
           username: signupUsername,
-          password: signupPassword,
+          password: zcrypt(signupPassword),
         });
         setAuth(signupUsername, signupPassword);
       } catch (_) {

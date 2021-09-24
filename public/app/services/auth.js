@@ -19,7 +19,7 @@ const toInt = str => {
 // ANYWHERE, hence this hacky hashing algorithm. It is adapted from a seedable
 // PRNG I've used a few times before, and will only be used when storing
 // passwords locally on the client's machine.
-const zcrypt = (password) => {
+export const zcrypt = (password) => {
   let hash = toInt(password) % 2147483647;
 
   for (let i = 0; i < HASH_ROUNDS; i += 1) {
