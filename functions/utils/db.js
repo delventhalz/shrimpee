@@ -17,9 +17,13 @@ const UserRef = id => q.Ref(q.Collection('users'), id);
 const FarmRef = id => q.Ref(q.Collection('farms'), id);
 
 const Normalize = (resource) => (
-  q.Merge(
-    q.Select(['data'], resource),
-    { id: q.Select(['ref', 'id'], resource) },
+  q.Let(
+    // Cache resource in Let to capture outputs of expressions without doubling
+    { resource },
+    q.Merge(
+      q.Select(['data'], q.Var('resource')),
+      { id: q.Select(['ref', 'id'], q.Var('resource')) },
+    )
   )
 );
 

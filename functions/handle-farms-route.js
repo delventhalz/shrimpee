@@ -17,7 +17,7 @@ const GetUserFarms = (userId) => (
       q.Merge(
         q.Var('farm'),
         {
-          ponds: GetIndexedItems('ponds_by_farm', q.Select(['id'], q.Var('farm')))
+          ponds: GetIndexedItems('ponds_by_farm', q.Select(['id'], q.Var('farm'))),
         },
       ),
     ),
