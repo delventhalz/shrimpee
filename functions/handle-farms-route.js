@@ -33,6 +33,13 @@ const CreateFarm = (userId, data) => (
   )
 );
 
+const UpdateFarm = (farmId, data) => (
+  q.Update(
+    FarmRef(farmId),
+    { data },
+  )
+);
+
 const DeleteFarm = (farmId) => (
   q.Delete(FarmRef(farmId))
 );
@@ -52,6 +59,15 @@ const postFarm = asAuthedUser(async ({ userId, body }) => {
   return wrapWith200(normalizeFarm(farm));
 });
 
+const putFarm = asAuthedUser(async (event) => {
+  // The path id is the source of truth
+  const { farmId } = getPathVars(event);
+  const { id, ...farm } = JSON.parse(event.body);
+
+  const updatedFarm = await query(UpdateFarm(farmId, farm));
+  return wrapWith200(normalizeFarm(updatedFarm));
+});
+
 const deleteFarm = asAuthedUser(async (event) => {
   const { farmId } = getPathVars(event);
   await query(DeleteFarm(farmId));
@@ -64,6 +80,8 @@ exports.handler = (event) => {
       return getFarms(event);
     case 'POST':
       return postFarm(event);
+    case 'PUT':
+      return putFarm(event);
     case 'DELETE':
       return deleteFarm(event);
     default:

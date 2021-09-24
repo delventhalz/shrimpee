@@ -1,24 +1,25 @@
 /* global m */
 
 import { LabeledInput } from '../components/forms.js';
+import { Modal, ModalButton } from '../components/modals.js';
 import { api } from '../services/api.js';
+
+const UPDATE_FARM_ID = 'update-farm-modal';
+
+// Farms share the same update modal, and therefore the same global updater
+let updateFarm = () => {};
+
+const getFarmUpdater = (farm, onUpdate) => async (update) => {
+  await onUpdate({ ...farm, ...update });
+};
 
 const FarmRow = {
   view({ attrs }) {
-    const {
-      farm,
-      onAddPond,
-      onEditFarm,
-      onDeleteFarm,
-    } = attrs;
+    const { farm, onUpdateFarm, onDeleteFarm } = attrs;
     const { id, name, description } = farm;
 
-    const addPond = () => {
-      onAddPond(id);
-    };
-
-    const editFarm = () => {
-      onEditFarm(id);
+    const setModalUpdater = () => {
+      updateFarm = getFarmUpdater(farm, onUpdateFarm);
     };
 
     const deleteFarm = () => {
@@ -30,8 +31,12 @@ const FarmRow = {
       m('p.text-secondary.fst-italic', 'Size: 0'),
       m('p', description),
       m('.d-flex.justify-content-end', [
-        m('button.btn.btn-primary.mx-3', { onclick: addPond }, 'Add Pond'),
-        m('button.btn.btn-primary.mx-3', { onclick: editFarm }, 'Edit'),
+        m('button.btn.btn-primary.mx-3', { onclick: () => {} }, 'Add Pond'),
+        m(ModalButton, {
+          class: 'btn-primary mx-3',
+          modalId: UPDATE_FARM_ID,
+          onclick: setModalUpdater,
+        }, 'Edit'),
         m('button.btn.btn-outline-danger.mx-3', { onclick: deleteFarm }, 'Delete'),
       ]),
     ]);
@@ -69,6 +74,35 @@ const FarmForm = {
   },
 };
 
+const UpdateFarmModal = {
+  oninit({ state }) {
+    state.farm = {};
+  },
+
+  view({ state }) {
+    const onSubmit = async () => {
+      await updateFarm(state.farm);
+      updateFarm = () => {};
+      state.farm = {};
+    };
+
+    return m(Modal, { id: UPDATE_FARM_ID, title: 'Update Farm', onSubmit }, [
+      m(LabeledInput, {
+        id: 'update-farm-name',
+        label: 'Name',
+        value: state.farm.name,
+        onValue: val => { state.farm.name = val; },
+      }),
+      m(LabeledInput, {
+        id: 'update-farm-description',
+        label: 'Description',
+        value: state.farm.description,
+        onValue: val => { state.farm.description = val; },
+      }),
+    ]);
+  },
+};
+
 export const FarmList = {
   async oninit({ state }) {
     state.farms = [];
@@ -88,15 +122,16 @@ export const FarmList = {
       }
     };
 
-    const onAddPond = (farmId) => {
-
+    const onUpdateFarm = async (update) => {
+      try {
+        await api.put(`/farms/${update.id}`, update);
+        state.farms = farms.map(farm => farm.id === update.id ? update : farm);
+      } catch (_) {
+        // Should display error for user
+      }
     };
 
-    const onEditFarm = (farmId) => {
-
-    };
-
-    const onDeleteFarm =  async (farmId) => {
+    const onDeleteFarm = async (farmId) => {
       try {
         await api.delete(`/farms/${farmId}`);
         state.farms = farms.filter(({ id }) => id !== farmId);
@@ -108,9 +143,10 @@ export const FarmList = {
     return m('.container', [
       m('h3.mb-5', 'Farms'),
       farms.length > 0
-        ? farms.map(farm => m(FarmRow, { farm, onAddPond, onEditFarm, onDeleteFarm }))
+        ? farms.map(farm => m(FarmRow, { farm, onUpdateFarm, onDeleteFarm }))
         : m('.text-secondary.fst-italic', 'No farms...'),
       m(FarmForm, { onAddFarm }),
+      m(UpdateFarmModal),
     ]);
   },
 };
