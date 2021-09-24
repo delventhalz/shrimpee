@@ -25,7 +25,11 @@ const GetUserFarms = (userId) => (
 );
 
 const CreateFarm = (userId, data) => (
-  CreateNormal('farms', { ...data, owner: userId })
+  CreateNormal('farms', {
+    ...data,
+    owner: userId,
+    size: 0
+  })
 );
 
 const UpdateFarm = (farmId, data) => (

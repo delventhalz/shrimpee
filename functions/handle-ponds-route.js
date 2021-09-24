@@ -1,13 +1,41 @@
 const { asAuthedUser } = require('./utils/auth.js');
-const { q, query, CreateNormal } = require('./utils/db.js');
+const {
+  q,
+  query,
+  FarmRef,
+  CreateNormal,
+} = require('./utils/db.js');
 const { getPathVars, wrapWith200 } = require('./utils/requests.js');
 
+const ResizeFarm = (farmId, delta) => (
+  q.Update(
+    FarmRef(farmId),
+    {
+      data: {
+        size: q.Add(
+          delta,
+          q.Select(['data', 'size'], q.Get(FarmRef(farmId))),
+        ),
+      },
+    },
+  )
+);
+
+// Create a new pond, update parent farm's size, finally return the new pond
 const CreatePond = (userId, farmId, data) => (
-  CreateNormal('ponds', {
-    ...data,
-    owner: userId,
-    farm: farmId,
-  })
+  q.Let(
+    {
+      output: CreateNormal('ponds', {
+        ...data,
+        owner: userId,
+        farm: farmId,
+      }),
+    },
+    q.Do(
+      ResizeFarm(farmId, data.size || 0),
+      q.Var('output'),
+    ),
+  )
 );
 
 const postPond = asAuthedUser(async (event) => {

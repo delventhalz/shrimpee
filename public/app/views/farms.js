@@ -28,6 +28,7 @@ const FarmRow = {
       id,
       name,
       description,
+      size,
       ponds,
     } = farm;
 
@@ -45,7 +46,7 @@ const FarmRow = {
 
     return m('.row.border.rounded.mb-3.p-1', [
       m('h5', name),
-      m('p.text-secondary.fst-italic', 'Size: 0'),
+      m('p.text-secondary.fst-italic', `Size: ${size} hectares`),
       m('p', description),
 
       m(Table, {
@@ -146,7 +147,10 @@ const PondModal = {
     const { id, title } = attrs;
 
     const onSubmit = async () => {
-      const updatePromise = updatePond(state.pond);
+      const updatePromise = updatePond({
+        ...state.pond,
+        size: Number(state.pond.size)
+      });
 
       // Prevent double clicks from sending two updates
       updatePond = () => {};
