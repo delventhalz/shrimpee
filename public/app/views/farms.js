@@ -111,8 +111,12 @@ const UpdateFarmModal = {
 
   view({ state }) {
     const onSubmit = async () => {
-      await updateFarm(state.farm);
+      const updatePromise = updateFarm(state.farm);
+
+      // Prevent double clicks from sending two updates
       updateFarm = () => {};
+      await updatePromise;
+
       state.farm = {};
     };
 
@@ -142,8 +146,12 @@ const PondModal = {
     const { id, title } = attrs;
 
     const onSubmit = async () => {
-      await updatePond(state.pond);
+      const updatePromise = updatePond(state.pond);
+
+      // Prevent double clicks from sending two updates
       updatePond = () => {};
+      await updatePromise;
+
       state.pond = {};
     };
 
