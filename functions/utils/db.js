@@ -10,7 +10,7 @@ const query = expression => CLIENT.query(expression);
 // FaunaDB relies on integer IDs which can be specified. For simplicity sake,
 // we will enforce unique usernames simply by converting them to an integer
 // and using them as an ID directly.
-const toId = (name) => parseInt(name.toLowerCase(), 36);
+const toId = (name) => String(parseInt(name.toLowerCase(), 36));
 
 // All custom DB queries will keep with FaunaDB's capitalization convention.
 const UserRef = id => q.Ref(q.Collection('users'), id);
