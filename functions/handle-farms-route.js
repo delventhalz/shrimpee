@@ -1,6 +1,6 @@
 const { asAuthedUser } = require('./utils/auth.js');
-const { q, query } = require('./utils/db.js');
-const { wrapWith200 } = require('./utils/requests.js');
+const { q, query, FarmRef } = require('./utils/db.js');
+const { getPathVars, wrapWith200 } = require('./utils/requests.js');
 
 const GetUserFarms = (userId) => (
   q.Select(
@@ -33,6 +33,10 @@ const CreateFarm = (userId, data) => (
   )
 );
 
+const DeleteFarm = (farmId) => (
+  q.Delete(FarmRef(farmId))
+);
+
 const normalizeFarm = ({ ref, data }) => ({
   id: ref.id,
   ...data,
@@ -48,12 +52,20 @@ const postFarm = asAuthedUser(async ({ userId, body }) => {
   return wrapWith200(normalizeFarm(farm));
 });
 
+const deleteFarm = asAuthedUser(async (event) => {
+  const { farmId } = getPathVars(event);
+  await query(DeleteFarm(farmId));
+  return { statusCode: 204 };
+});
+
 exports.handler = (event) => {
   switch (event.httpMethod) {
     case 'GET':
       return getFarms(event);
     case 'POST':
       return postFarm(event);
+    case 'DELETE':
+      return deleteFarm(event);
     default:
       throw new Error(`Method not supported: ${event.httpMethod}`);
   }

@@ -7,3 +7,8 @@
   from = "/api/farms"
   to = "/.netlify/functions/handle-farms-route"
   status = 200
+
+[[redirects]]
+  from = "/api/farms/:farmsId"
+  to = "/.netlify/functions/handle-farms-route/farms/:farmsId"
+  status = 200

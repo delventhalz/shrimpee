@@ -5,23 +5,46 @@ import { api } from '../services/api.js';
 
 const FarmRow = {
   view({ attrs }) {
-    const { name, description } = attrs;
+    const {
+      farm,
+      onAddPond,
+      onEditFarm,
+      onDeleteFarm,
+    } = attrs;
+    const { id, name, description } = farm;
+
+    const addPond = () => {
+      onAddPond(id);
+    };
+
+    const editFarm = () => {
+      onEditFarm(id);
+    };
+
+    const deleteFarm = () => {
+      onDeleteFarm(id);
+    };
 
     return m('.row.border.rounded.mb-3.p-1', [
       m('h5', name),
       m('p.text-secondary.fst-italic', 'Size: 0'),
       m('p', description),
+      m('.d-flex.justify-content-end', [
+        m('button.btn.btn-primary.mx-3', { onclick: addPond }, 'Add Pond'),
+        m('button.btn.btn-primary.mx-3', { onclick: editFarm }, 'Edit'),
+        m('button.btn.btn-outline-danger.mx-3', { onclick: deleteFarm }, 'Delete'),
+      ]),
     ]);
   },
 };
 
 const FarmForm = {
   view({ attrs, state }) {
-    const { onAdd } = attrs;
+    const { onAddFarm } = attrs;
     const { name, description } = state;
 
     const onclick = () => {
-      onAdd({ name, description });
+      onAddFarm({ name, description });
       state.name = '';
       state.description = '';
       m.redraw();
@@ -56,7 +79,7 @@ export const FarmList = {
   view({ state }) {
     const { farms } = state;
 
-    const onAdd = async (data) => {
+    const onAddFarm = async (data) => {
       try {
         const farm = await api.post('/farms', data);
         farms.push(farm);
@@ -65,12 +88,29 @@ export const FarmList = {
       }
     };
 
+    const onAddPond = (farmId) => {
+
+    };
+
+    const onEditFarm = (farmId) => {
+
+    };
+
+    const onDeleteFarm =  async (farmId) => {
+      try {
+        await api.delete(`/farms/${farmId}`);
+        state.farms = farms.filter(({ id }) => id !== farmId);
+      } catch (_) {
+        // Should display error for user
+      }
+    };
+
     return m('.container', [
       m('h3.mb-5', 'Farms'),
       farms.length > 0
-        ? farms.map(attrs => m(FarmRow, attrs))
+        ? farms.map(farm => m(FarmRow, { farm, onAddPond, onEditFarm, onDeleteFarm }))
         : m('.text-secondary.fst-italic', 'No farms...'),
-      m(FarmForm, { onAdd }),
+      m(FarmForm, { onAddFarm }),
     ]);
   },
 };

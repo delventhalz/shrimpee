@@ -14,10 +14,12 @@ const toId = (name) => parseInt(name.toLowerCase(), 36);
 
 // All custom DB queries will keep with FaunaDB's capitalization convention.
 const UserRef = id => q.Ref(q.Collection('users'), id);
+const FarmRef = id => q.Ref(q.Collection('farms'), id);
 
 module.exports = {
   q,
   query,
   toId,
   UserRef,
+  FarmRef,
 };
