@@ -2,3 +2,8 @@
   from = "/api/users"
   to = "/.netlify/functions/add-user"
   status = 200
+
+[[redirects]]
+  from = "/api/farms"
+  to = "/.netlify/functions/handle-farms-route"
+  status = 200

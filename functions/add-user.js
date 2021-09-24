@@ -5,6 +5,7 @@ const {
   toId,
   UserRef,
 } = require('./utils/db.js');
+const { wrapWith200 } = require('./utils/requests.js');
 
 // Omit password from user
 const sanitizeUser = ({ password, ...user }) => user;
@@ -27,11 +28,5 @@ exports.handler = async ({ body }) => {
     password: hashed
   }));
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify(sanitizeUser(user)),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
+  return wrapWith200(sanitizeUser(user));
 };
