@@ -2,24 +2,41 @@
 
 import { LabeledInput } from '../components/forms.js';
 import { Modal, ModalButton } from '../components/modals.js';
+import { Table } from '../components/tables.js';
 import { api } from '../services/api.js';
 
 const UPDATE_FARM_ID = 'update-farm-modal';
+const ADD_POND_ID = 'add-pond-modal';
 
-// Farms share the same update modal, and therefore the same global updater
+// Resources share the same modals, and therefore the same global updaters
 let updateFarm = () => {};
+let updatePond = () => {};
 
-const getFarmUpdater = (farm, onUpdate) => async (update) => {
-  await onUpdate({ ...farm, ...update });
+const getUpdater = (resource, onUpdate) => async (update) => {
+  await onUpdate({ ...resource, ...update });
 };
 
 const FarmRow = {
   view({ attrs }) {
-    const { farm, onUpdateFarm, onDeleteFarm } = attrs;
-    const { id, name, description } = farm;
+    const {
+      farm,
+      onAddPond,
+      onUpdateFarm,
+      onDeleteFarm,
+    } = attrs;
+    const {
+      id,
+      name,
+      description,
+      ponds,
+    } = farm;
 
-    const setModalUpdater = () => {
-      updateFarm = getFarmUpdater(farm, onUpdateFarm);
+    const setFarmModalUpdater = () => {
+      updateFarm = getUpdater(farm, onUpdateFarm);
+    };
+
+    const setPondModalUpdater = () => {
+      updatePond = getUpdater({ farm: id }, onAddPond);
     };
 
     const deleteFarm = () => {
@@ -30,12 +47,25 @@ const FarmRow = {
       m('h5', name),
       m('p.text-secondary.fst-italic', 'Size: 0'),
       m('p', description),
+
+      m(Table, {
+        class: 'my-3',
+        data: [
+          ['Pond', 'Description', 'Size'],
+          ...ponds.map(pond => [pond.name, pond.description, pond.size]),
+        ],
+      }),
+
       m('.d-flex.justify-content-end', [
-        m('button.btn.btn-primary.mx-3', { onclick: () => {} }, 'Add Pond'),
+        m(ModalButton, {
+          class: 'btn-primary mx-3',
+          modalId: ADD_POND_ID,
+          onclick: setPondModalUpdater,
+        }, 'Add Pond'),
         m(ModalButton, {
           class: 'btn-primary mx-3',
           modalId: UPDATE_FARM_ID,
-          onclick: setModalUpdater,
+          onclick: setFarmModalUpdater,
         }, 'Edit'),
         m('button.btn.btn-outline-danger.mx-3', { onclick: deleteFarm }, 'Delete'),
       ]),
@@ -103,50 +133,86 @@ const UpdateFarmModal = {
   },
 };
 
+const PondModal = {
+  oninit({ state }) {
+    state.pond = {};
+  },
+
+  view({ attrs, state }) {
+    const { id, title } = attrs;
+
+    const onSubmit = async () => {
+      await updatePond(state.pond);
+      updatePond = () => {};
+      state.pond = {};
+    };
+
+    return m(Modal, { id, title, onSubmit }, [
+      m(LabeledInput, {
+        id: `${id}-name`,
+        label: 'Name',
+        value: state.pond.name,
+        onValue: val => { state.pond.name = val; },
+      }),
+      m(LabeledInput, {
+        id: `${id}-description`,
+        label: 'Description',
+        value: state.pond.description,
+        onValue: val => { state.pond.description = val; },
+      }),
+      m(LabeledInput, {
+        id: `${id}-size`,
+        label: 'Size (hectares)',
+        value: state.pond.size,
+        onValue: val => { state.pond.size = val; },
+      }),
+    ]);
+  },
+};
+
+const getFarmsUpdateSender = (state) => async (update) => {
+  try {
+    await update();
+    state.farms = await api.get('/farms');
+  } catch (_) {
+    // Should display error for user
+  }
+};
+
 export const FarmList = {
   async oninit({ state }) {
     state.farms = [];
-    const farms = await api.get('/farms');
-    state.farms = farms;
+    getFarmsUpdateSender(state)(() => {});
   },
 
   view({ state }) {
+    const sendFarmsUpdate = getFarmsUpdateSender(state);
     const { farms } = state;
 
     const onAddFarm = async (data) => {
-      try {
-        const farm = await api.post('/farms', data);
-        farms.push(farm);
-      } catch (_) {
-        // Should display error here
-      }
+      await sendFarmsUpdate(() => api.post('/farms', data));
+    };
+
+    const onAddPond = async ({ farm, ...data }) => {
+      await sendFarmsUpdate(() => api.post(`/farms/${farm}/ponds`, data));
     };
 
     const onUpdateFarm = async (update) => {
-      try {
-        await api.put(`/farms/${update.id}`, update);
-        state.farms = farms.map(farm => farm.id === update.id ? update : farm);
-      } catch (_) {
-        // Should display error for user
-      }
+      await sendFarmsUpdate(() => api.put(`/farms/${update.id}`, update));
     };
 
     const onDeleteFarm = async (farmId) => {
-      try {
-        await api.delete(`/farms/${farmId}`);
-        state.farms = farms.filter(({ id }) => id !== farmId);
-      } catch (_) {
-        // Should display error for user
-      }
+      await sendFarmsUpdate(() => api.delete(`/farms/${farmId}`));
     };
 
     return m('.container', [
       m('h3.mb-5', 'Farms'),
       farms.length > 0
-        ? farms.map(farm => m(FarmRow, { farm, onUpdateFarm, onDeleteFarm }))
+        ? farms.map(farm => m(FarmRow, { farm, onAddPond, onUpdateFarm, onDeleteFarm }))
         : m('.text-secondary.fst-italic', 'No farms...'),
       m(FarmForm, { onAddFarm }),
       m(UpdateFarmModal),
+      m(PondModal, { id: ADD_POND_ID, title: 'Add Pond' }),
     ]);
   },
 };
