@@ -27,8 +27,7 @@ const GetUserFarms = (userId) => (
 const CreateFarm = (userId, data) => (
   CreateNormal('farms', {
     ...data,
-    owner: userId,
-    size: 0
+    owner: userId
   })
 );
 
@@ -47,7 +46,16 @@ const DeleteFarm = (farmId) => (
 
 const getFarms = asAuthedUser(async ({ userId }) => {
   const farms = await query(GetUserFarms(userId));
-  return wrapWith200(farms);
+
+  const sizedFarms = farms.map((farm) => {
+    const size = farm.ponds
+      .map(pond => pond.size)
+      .reduce((total, pondSize) => total + pondSize, 0);
+
+    return { ...farm, size };
+  });
+
+  return wrapWith200(sizedFarms);
 });
 
 const postFarm = asAuthedUser(async ({ userId, body }) => {
