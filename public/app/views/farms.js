@@ -12,18 +12,13 @@ const ADD_POND_ID = 'add-pond-modal';
 let updateFarm = () => {};
 let updatePond = () => {};
 
-const getUpdater = (resource, onUpdate) => async (update) => {
-  await onUpdate({ ...resource, ...update });
+const getUpdater = (onUpdate, baseResource = {}) => async (update) => {
+  await onUpdate({ ...baseResource, ...update });
 };
 
 const FarmRow = {
   view({ attrs }) {
-    const {
-      farm,
-      onAddPond,
-      onUpdateFarm,
-      onDeleteFarm,
-    } = attrs;
+    const { farm, onUpdate } = attrs;
     const {
       id,
       name,
@@ -32,16 +27,24 @@ const FarmRow = {
       ponds,
     } = farm;
 
+    const addPond = async (data) => {
+      await onUpdate(() => api.post(`/farms/${id}/ponds`, data));
+    };
+
+    const editFarm = async (update) => {
+      await onUpdate(() => api.put(`/farms/${id}`, update));
+    };
+
+    const deleteFarm = async () => {
+      await onUpdate(() => api.delete(`/farms/${id}`));
+    };
+
     const setFarmModalUpdater = () => {
-      updateFarm = getUpdater(farm, onUpdateFarm);
+      updateFarm = getUpdater(editFarm, farm);
     };
 
     const setPondModalUpdater = () => {
-      updatePond = getUpdater({ farm: id }, onAddPond);
-    };
-
-    const deleteFarm = () => {
-      onDeleteFarm(id);
+      updatePond = getUpdater(addPond);
     };
 
     return m('.row.border.rounded.mb-3.p-3', [
@@ -81,11 +84,11 @@ const FarmRow = {
 
 const FarmForm = {
   view({ attrs, state }) {
-    const { onAddFarm } = attrs;
+    const { onUpdate } = attrs;
     const { name, description } = state;
 
-    const onclick = () => {
-      onAddFarm({ name, description });
+    const onclick = async () => {
+      await onUpdate(() => api.post('/farms', { name, description }));
       state.name = '';
       state.description = '';
       m.redraw();
@@ -187,7 +190,7 @@ const PondModal = {
   },
 };
 
-const getFarmsUpdateSender = (state) => async (update) => {
+const getFarmsRefresher = (state) => async (update = () => {}) => {
   try {
     await update();
     state.farms = await api.get('/farms');
@@ -199,35 +202,19 @@ const getFarmsUpdateSender = (state) => async (update) => {
 export const FarmList = {
   async oninit({ state }) {
     state.farms = [];
-    getFarmsUpdateSender(state)(() => {});
+    getFarmsRefresher(state)();
   },
 
   view({ state }) {
-    const sendFarmsUpdate = getFarmsUpdateSender(state);
+    const onUpdate = getFarmsRefresher(state);
     const { farms } = state;
-
-    const onAddFarm = async (data) => {
-      await sendFarmsUpdate(() => api.post('/farms', data));
-    };
-
-    const onAddPond = async ({ farm, ...data }) => {
-      await sendFarmsUpdate(() => api.post(`/farms/${farm}/ponds`, data));
-    };
-
-    const onUpdateFarm = async (update) => {
-      await sendFarmsUpdate(() => api.put(`/farms/${update.id}`, update));
-    };
-
-    const onDeleteFarm = async (farmId) => {
-      await sendFarmsUpdate(() => api.delete(`/farms/${farmId}`));
-    };
 
     return m('.container', [
       m('h3.mb-5', 'Farms'),
       farms.length > 0
-        ? farms.map(farm => m(FarmRow, { farm, onAddPond, onUpdateFarm, onDeleteFarm }))
+        ? farms.map(farm => m(FarmRow, { farm, onUpdate }))
         : m('.text-secondary.fst-italic', 'No farms...'),
-      m(FarmForm, { onAddFarm }),
+      m(FarmForm, { onUpdate }),
       m(UpdateFarmModal),
       m(PondModal, { id: ADD_POND_ID, title: 'Add Pond' }),
     ]);
