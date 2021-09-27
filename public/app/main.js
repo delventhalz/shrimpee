@@ -11,7 +11,7 @@ const App = {
 
     return m('.app-container', [
       m(TopBar, { isLoggedIn, onLogout: clearAuth }),
-      m('.container-lg.pt-5',
+      m('.container-lg',
         isLoggedIn
           ? m(FarmList)
           : m(LoginForm),

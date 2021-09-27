@@ -31,8 +31,8 @@ export const LoginForm = {
       setAuth(loginUsername, loginPassword);
     };
 
-    return m('.row', [
-      m('.col-6.mt-3',
+    return m('.row.pt-3', [
+      m('.col-6',
         m('h3', 'Existing Farmers'),
         m(LabeledInput, {
           id: 'login-username',
@@ -50,7 +50,7 @@ export const LoginForm = {
         m('button.btn.btn-primary', { onclick: onSignup }, 'Login'),
       ),
 
-      m('.col-6.mt-3',
+      m('.col-6',
         m('h3', 'New Farmers'),
         m(LabeledInput, {
           id: 'signup-username',

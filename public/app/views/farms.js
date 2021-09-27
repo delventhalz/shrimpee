@@ -44,31 +44,36 @@ const FarmRow = {
       onDeleteFarm(id);
     };
 
-    return m('.row.border.rounded.mb-3.p-1', [
+    return m('.row.border.rounded.mb-3.p-3', [
       m('h5', name),
       m('p.text-secondary.fst-italic', `Size: ${size} hectares`),
       m('p', description),
 
-      m(Table, {
-        class: 'my-3',
-        data: [
-          ['Pond', 'Description', 'Size'],
-          ...ponds.map(pond => [pond.name, pond.description, pond.size]),
-        ],
-      }),
+      m('.container',
+        ponds.length > 0
+          ? (
+            m(Table, {
+              data: [
+                ['Pond', 'Description', 'Size'],
+                ...ponds.map(pond => [pond.name, pond.description, pond.size]),
+              ],
+            })
+          )
+          : m('.text-secondary.fst-italic', 'No ponds...'),
+      ),
 
       m('.d-flex.justify-content-end', [
         m(ModalButton, {
-          class: 'btn-primary mx-3',
+          class: 'btn-primary ms-3',
           modalId: ADD_POND_ID,
           onclick: setPondModalUpdater,
         }, 'Add Pond'),
         m(ModalButton, {
-          class: 'btn-primary mx-3',
+          class: 'btn-primary ms-3',
           modalId: UPDATE_FARM_ID,
           onclick: setFarmModalUpdater,
         }, 'Edit'),
-        m('button.btn.btn-outline-danger.mx-3', { onclick: deleteFarm }, 'Delete'),
+        m('button.btn.btn-outline-danger.ms-3', { onclick: deleteFarm }, 'Delete'),
       ]),
     ]);
   },
