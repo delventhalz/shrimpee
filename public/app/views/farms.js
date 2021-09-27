@@ -39,6 +39,10 @@ const FarmRow = {
       await onUpdate(() => api.delete(`/farms/${id}`));
     };
 
+    const getPondDeleter = (pondId) => async () => {
+      await onUpdate(() => api.delete(`/farms/${id}/ponds/${pondId}`));
+    };
+
     const setFarmModalUpdater = () => {
       updateFarm = getUpdater(editFarm, farm);
     };
@@ -57,8 +61,16 @@ const FarmRow = {
           ? (
             m(Table, {
               data: [
-                ['Pond', 'Description', 'Size'],
-                ...ponds.map(pond => [pond.name, pond.description, pond.size]),
+                ['Pond', 'Description', 'Size', ''],
+                ...ponds.map(pond => [
+                  pond.name,
+                  pond.description,
+                  pond.size,
+                  m('button.btn.btn-sm.btn-danger',
+                    { onclick: getPondDeleter(pond.id) },
+                    'Remove'
+                  ),
+                ]),
               ],
             })
           )

@@ -1,5 +1,10 @@
 const { asAuthedUser } = require('./utils/auth.js');
-const { q, query, CreateNormal } = require('./utils/db.js');
+const {
+  q,
+  query,
+  PondRef,
+  CreateNormal,
+} = require('./utils/db.js');
 const { getPathVars, wrapWith200 } = require('./utils/requests.js');
 
 const CreatePond = (userId, farmId, data) => (
@@ -8,6 +13,10 @@ const CreatePond = (userId, farmId, data) => (
     owner: userId,
     farm: farmId,
   })
+);
+
+const DeletePond = (pondId) => (
+  q.Delete(PondRef(pondId))
 );
 
 const postPond = asAuthedUser(async (event) => {
@@ -19,10 +28,18 @@ const postPond = asAuthedUser(async (event) => {
   return wrapWith200(pond);
 });
 
+const deletePond = asAuthedUser(async (event) => {
+  const { pondId } = getPathVars(event);
+  await query(DeletePond(pondId));
+  return { statusCode: 204 };
+});
+
 exports.handler = (event) => {
   switch (event.httpMethod) {
     case 'POST':
       return postPond(event);
+    case 'DELETE':
+      return deletePond(event);
     default:
       throw new Error(`Method not supported: ${event.httpMethod}`);
   }

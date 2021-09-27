@@ -17,3 +17,8 @@
   from = "/api/farms/:farmId/ponds"
   to = "/.netlify/functions/handle-ponds-route/farms/:farmId"
   status = 200
+
+[[redirects]]
+  from = "/api/farms/:farmId/ponds/:pondId"
+  to = "/.netlify/functions/handle-ponds-route/farms/:farmId/ponds/:pondId"
+  status = 200
