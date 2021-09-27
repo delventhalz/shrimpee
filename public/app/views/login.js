@@ -47,7 +47,7 @@ export const LoginForm = {
           value: loginPassword,
           onValue: val => { state.loginPassword = val; },
         }),
-        m('button.btn.btn-primary', { onclick: onSignup }, 'Login'),
+        m('button.btn.btn-primary', { onclick: onLogin }, 'Login'),
       ),
 
       m('.col-6',
